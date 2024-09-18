@@ -1,5 +1,5 @@
-local a = 5
-local b = 10
-local c = a + b * 2 - 3 / 1.5
-
+local a = 12
+local b = 13
+local c = a+b
+local text = "hola"
 print(c)
