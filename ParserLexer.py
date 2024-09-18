@@ -1,7 +1,7 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
-# Define reserved words and their corresponding tokens
+
 reserved = {
     'do': 'DO',
     'while': 'WHILE',
@@ -21,7 +21,7 @@ reserved = {
     'elseif': 'ELSEIF',
     'until': 'UNTIL',
     'in': 'IN',
-    'print': 'PRINT'  # Treat 'print' as a reserved word
+    'print': 'PRINT'  
 }
 
 tokens = list(reserved.values()) + [
@@ -31,7 +31,6 @@ tokens = list(reserved.values()) + [
     'COLON', 'ASSIGN', 'ELLIPSIS'
 ]
 
-# Token definitions
 t_PLUS = r'\+'
 t_MINUS = r'-'
 t_TIMES = r'\*'
@@ -74,36 +73,29 @@ def t_STRING(t):
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    # Check if it is a reserved word
-    t.type = reserved.get(t.value, 'NAME')  # Check for reserved words
+    t.type = reserved.get(t.value, 'NAME')  
     return t
 
-# Ignore spaces, tabs, and newlines
 t_ignore = ' \t'
 
-# Single-line comment rule
 def t_SINGLE_COMMENT(t):
     r'--.*'
-    pass  # No return value. Token discarded
+    pass 
 
-# Multi-line comment rule
 def t_MULTI_COMMENT(t):
     r'\[\[.*?\]\]'
-    pass  # No return value. Token discarded
+    pass  
 
-# Rule to handle newlines
 def t_newline(t):
     r'\n+'
     t.lexer.lineno += len(t.value)
 
-# Error handling rule
 def t_error(t):
     print(f"Illegal character '{t.value[0]}'")
     t.lexer.skip(1)
 
 lexer = lex.lex()
 
-# Define operator precedence and associativity
 precedence = (
     ('left', 'OR'),
     ('left', 'AND'),
@@ -112,17 +104,14 @@ precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'DIVIDE', 'MOD'),
     ('right', 'POWER'),
-    ('right', 'UNARY'),  # For unary minus, not, length
+    ('right', 'UNARY'),  
 )
 
-# List of reserved words that should not be redefined as variables
 reserved_words = {'print'}
 
-# Symbol Table to track variable and function definitions
 symbol_table = {}
 
 def add_to_symbol_table(name, entry_type, lineno):
-    # Check if 'name' is a reserved word
     if name in reserved_words:
         print(f"Semantic error: '{name}' cannot be redefined as a variable or function at line {lineno}.")
     elif name in symbol_table:
