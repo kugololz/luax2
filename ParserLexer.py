@@ -136,11 +136,11 @@ def p_statlist(p):
                 | empty'''
     if p[1] == []:
         p[0] = []
-    elif len(p) == 4:  # statlist stat SEMI
+    elif len(p) == 4:  
         p[0] = p[1] + [p[2]]
-    elif len(p) == 3:  # statlist stat
+    elif len(p) == 3:  
         p[0] = p[1] + [p[2]]
-    else:  # empty
+    else:  
         p[0] = []
 
 def p_stat(p):
@@ -234,7 +234,6 @@ def p_exp(p):
            | tableconstructor
            | exp binop exp
            | unop exp'''
-    # Depending on the type of expression, perform semantic checks if necessary
 
 def p_prefixexp(p):
     '''prefixexp : var
