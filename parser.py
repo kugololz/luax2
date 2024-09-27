@@ -69,7 +69,6 @@ def p_command(p):
     else:
         p[0] = p[1]
 
-# Define expassign to resolve the missing symbol error
 def p_expassign(p):
     '''expassign : ASSIGN exp
                  | empty'''
@@ -78,7 +77,6 @@ def p_expassign(p):
     else:
         p[0] = None
 
-# Handle local variable declaration
 def p_localdeclaration(p):
     '''localdeclaration : LOCAL ID expassign'''
     var_name = p[2]
@@ -88,7 +86,6 @@ def p_localdeclaration(p):
     symbol_table['variables'][var_name] = var_type
     p[0] = ('localdeclaration', var_name, p[3])
 
-# Handle multiple variable assignments
 def p_varassignmultiple(p):
     '''varassignmultiple : LOCAL ID COMMA ID ASSIGN functioncall'''
     var1 = p[2]
@@ -97,7 +94,6 @@ def p_varassignmultiple(p):
     symbol_table['variables'][var2] = 'number'
     p[0] = ('multiple_assign', var1, var2, p[6])
 
-# Variable declaration with the 'VAR' token
 def p_vardeclaration(p):
     '''vardeclaration : VAR ID expassign'''
     var_name = p[2]
