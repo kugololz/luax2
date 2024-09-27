@@ -12,7 +12,6 @@ num_errors = 0
 num_lines = 0
 open_parentheses = 0 
 
-
 precedence = (
     ('nonassoc', 'AND', 'OR'),
     ('nonassoc', 'EQUAL', 'NOTEQUAL'),
@@ -54,9 +53,10 @@ def p_command(p):
                | vardeclaration
                | localdeclaration
                | functiondeclaration
+               | varassignmultiple
                | WHILE exp DO block END
                | IF exp THEN block elsestnt END
-               | RETURN exp'''
+               | RETURN explist'''
     if len(p) == 4:  
         var_name = p[1]
         var_type = p[3] if isinstance(p[3], str) else 'number'  
@@ -69,6 +69,16 @@ def p_command(p):
     else:
         p[0] = p[1]
 
+# Define expassign to resolve the missing symbol error
+def p_expassign(p):
+    '''expassign : ASSIGN exp
+                 | empty'''
+    if len(p) == 3:
+        p[0] = p[2]
+    else:
+        p[0] = None
+
+# Handle local variable declaration
 def p_localdeclaration(p):
     '''localdeclaration : LOCAL ID expassign'''
     var_name = p[2]
@@ -78,6 +88,16 @@ def p_localdeclaration(p):
     symbol_table['variables'][var_name] = var_type
     p[0] = ('localdeclaration', var_name, p[3])
 
+# Handle multiple variable assignments
+def p_varassignmultiple(p):
+    '''varassignmultiple : LOCAL ID COMMA ID ASSIGN functioncall'''
+    var1 = p[2]
+    var2 = p[4]
+    symbol_table['variables'][var1] = 'number'
+    symbol_table['variables'][var2] = 'number'
+    p[0] = ('multiple_assign', var1, var2, p[6])
+
+# Variable declaration with the 'VAR' token
 def p_vardeclaration(p):
     '''vardeclaration : VAR ID expassign'''
     var_name = p[2]
@@ -86,11 +106,6 @@ def p_vardeclaration(p):
         var_type = 'string'
     symbol_table['variables'][var_name] = var_type
     p[0] = ('vardeclaration', var_name, p[3])
-
-def p_expassign(p):
-    '''expassign : empty
-                 | ASSIGN exp'''
-    p[0] = p[2] if len(p) == 3 else None
 
 def p_functiondeclaration(p):
     '''functiondeclaration : LOCAL FUNCTION ID LPAREN paramlist RPAREN block END'''
