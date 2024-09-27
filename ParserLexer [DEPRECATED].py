@@ -1,7 +1,6 @@
 import ply.lex as lex
 import ply.yacc as yacc
 
-
 reserved = {
     'do': 'DO',
     'while': 'WHILE',
@@ -21,7 +20,7 @@ reserved = {
     'elseif': 'ELSEIF',
     'until': 'UNTIL',
     'in': 'IN',
-    'print': 'PRINT'  
+    'print': 'PRINT'
 }
 
 tokens = list(reserved.values()) + [
@@ -73,18 +72,18 @@ def t_STRING(t):
 
 def t_NAME(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
-    t.type = reserved.get(t.value, 'NAME')  
+    t.type = reserved.get(t.value, 'NAME')
     return t
 
 t_ignore = ' \t'
 
 def t_SINGLE_COMMENT(t):
     r'--.*'
-    pass 
+    pass
 
 def t_MULTI_COMMENT(t):
     r'\[\[.*?\]\]'
-    pass  
+    pass
 
 def t_newline(t):
     r'\n+'
@@ -104,7 +103,7 @@ precedence = (
     ('left', 'PLUS', 'MINUS'),
     ('left', 'TIMES', 'DIVIDE', 'MOD'),
     ('right', 'POWER'),
-    ('right', 'UNARY'),  
+    ('right', 'UNARY'),
 )
 
 reserved_words = {'print'}
@@ -136,11 +135,11 @@ def p_statlist(p):
                 | empty'''
     if p[1] == []:
         p[0] = []
-    elif len(p) == 4:  
+    elif len(p) == 4:
         p[0] = p[1] + [p[2]]
-    elif len(p) == 3:  
+    elif len(p) == 3:
         p[0] = p[1] + [p[2]]
-    else:  
+    else:
         p[0] = []
 
 def p_stat(p):
@@ -155,15 +154,17 @@ def p_stat(p):
             | FUNCTION funcname funcbody
             | LOCAL FUNCTION NAME funcbody
             | LOCAL namelist opt_assign'''
+
     if p[1] == 'local' and len(p) > 3 and p[2] == 'function':
         add_to_symbol_table(p[3], 'function', p.lineno(3))
-    elif p[1] == 'local':
-        if len(p) > 3:
-            for var in (p[3] if p[3] else []):
-                add_to_symbol_table(var, 'local variable', p.lineno(1))
-    elif len(p) > 1 and p[2] == '=':
+    elif p[1] == 'local':  # Handle 'local' variable declarations
+        for var in p[2]:  # Loop through the namelist
+            add_to_symbol_table(var, 'local variable', p.lineno(1))  # Add variables to the symbol table
+    elif len(p) > 1 and p[2] == '=':  # Handle assignments
         for var in p[1]:
             check_symbol_table(var, p.lineno(1))
+            # Add variables being assigned to the symbol table
+            add_to_symbol_table(var, 'variable', p.lineno(1))
     p[0] = p[1]
 
 def p_laststat(p):
@@ -194,10 +195,13 @@ def p_var(p):
 def p_functioncall(p):
     '''functioncall : NAME LPAREN opt_explist RPAREN
                     | prefixexp COLON NAME args'''
-    if p[1] == 'print' and p.slice[1].type == 'NAME' and p[1] in symbol_table:
-        print(f"Semantic error: '{p[1]}' is redefined as a variable at line {p.lineno(1)}.")
-    elif p[1] not in symbol_table:
+
+    # Check if it's a function call to 'print'
+    if p[1] == 'print':  # Reserved function, no semantic error
+        pass
+    elif p[1] not in symbol_table:  # Check user-defined functions
         print(f"Semantic error: Undefined function '{p[1]}' called at line {p.lineno(1)}.")
+    p[0] = p[1]
 
 def p_args(p):
     '''args : LPAREN opt_explist RPAREN
@@ -234,11 +238,13 @@ def p_exp(p):
            | tableconstructor
            | exp binop exp
            | unop exp'''
+    p[0] = p[1]
 
 def p_prefixexp(p):
     '''prefixexp : var
                  | functioncall
                  | LPAREN exp RPAREN'''
+    p[0] = p[1]
 
 def p_function(p):
     '''function : FUNCTION funcbody'''
@@ -349,20 +355,10 @@ def p_error(p):
 
 parser = yacc.yacc()
 
-
 def parse_lua_file(filename):
     try:
         with open(filename, 'r', encoding='utf-8') as file:
-            data = file.read() 
-
-        # Tokenize and parse the data
-        lexer.input(data)
-        # print("Tokens:")
-        # while True:
-        #     tok = lexer.token()
-        #     if not tok:
-        #         break
-        #     print(tok)
+            data = file.read()
 
         print("\nParsing:")
         parser.parse(data)
@@ -371,7 +367,6 @@ def parse_lua_file(filename):
         print(f"Error: File '{filename}' not found.")
     except Exception as e:
         print(f"An error occurred: {e}")
-
 
 filename = input()
 parse_lua_file(filename)
